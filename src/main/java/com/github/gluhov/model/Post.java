@@ -17,6 +17,12 @@ public class Post extends BaseEntity {
     private PostStatus status;
     private List<Label> labels;
 
+    public Post(Long id, String content, PostStatus status) {
+        super(id);
+        this.content = content;
+        this.status = status;
+    }
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder("id: " + id + "; content: " + content + "; status: " + status + "; created: " + created + "; updated: " + updated +"; labels id: [ ");

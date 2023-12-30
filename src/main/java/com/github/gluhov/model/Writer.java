@@ -14,6 +14,12 @@ public class Writer extends BaseEntity{
     private String lastName;
     private List<Post> posts;
 
+    public Writer(Long id, String firstName, String lastName) {
+        super(id);
+        this.firstName = firstName;
+        this.lastName = lastName;
+    }
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder("id: " + id + "; first name: " + firstName + "; last name: " + lastName + "; posts: [ ");
