@@ -174,8 +174,8 @@ public class JdbcWriterRepositoryImpl implements WriterRepository {
     public List<Writer> findAll() {
         List<Writer> writers = new ArrayList<>();
         try (Connection connection = DatabaseUtil.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM Writer")){
-            ResultSet resultSet = preparedStatement.executeQuery();
+             Statement statement = connection.createStatement()){
+            ResultSet resultSet = statement.executeQuery("SELECT * FROM Writer");
             while (resultSet.next()) {
                 writers.add(getWriter(resultSet));
             }

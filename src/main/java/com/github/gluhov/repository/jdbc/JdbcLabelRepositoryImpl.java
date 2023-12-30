@@ -94,8 +94,8 @@ public class JdbcLabelRepositoryImpl implements LabelRepository {
     public List<Label> findAll() {
         List<Label> labels = new ArrayList<>();
         try (Connection connection = DatabaseUtil.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement("SELECT id, name FROM Label;")) {
-                ResultSet resultSet = preparedStatement.executeQuery();
+             Statement statement = connection.createStatement()) {
+                ResultSet resultSet = statement.executeQuery("SELECT * FROM Label;");
 
                 while(resultSet.next()) {
                     labels.add(getLabel(resultSet));

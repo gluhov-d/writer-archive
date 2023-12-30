@@ -159,8 +159,8 @@ public class JdbcPostRepositoryImpl implements PostRepository {
     public List<Post> findAll() {
         List<Post> posts = new ArrayList<>();
         try (Connection connection = DatabaseUtil.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM Post")){
-            ResultSet resultSet = preparedStatement.executeQuery();
+             Statement statement = connection.createStatement()){
+            ResultSet resultSet = statement.executeQuery("SELECT * FROM Post");
             while (resultSet.next()) {
                 posts.add(getPost(resultSet));
             }
