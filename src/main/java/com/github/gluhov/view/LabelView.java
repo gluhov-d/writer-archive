@@ -1,9 +1,9 @@
 package com.github.gluhov.view;
 
 import com.github.gluhov.controller.LabelController;
+import com.github.gluhov.model.Label;
 import com.github.gluhov.util.ConsoleUtil;
 import lombok.RequiredArgsConstructor;
-import com.github.gluhov.model.Label;
 
 import java.io.IOException;
 import java.util.List;
@@ -53,9 +53,9 @@ public class LabelView {
         String labelName = sc.next();
         ConsoleUtil.writeEmptyLines();
         Label newLabel = Label.builder().name(labelName).build();
-        ConsoleUtil.printOperationResult("Label created");
-        System.out.println(labelController.save(newLabel));
-        System.out.println();
+        Optional<Label> label = labelController.save(newLabel);
+        ConsoleUtil.writeEmptyLines();
+        ConsoleUtil.printOperationResult(label.isPresent()?label.get().toString():"Can not save label");
     }
 
     private void update() {
@@ -66,8 +66,9 @@ public class LabelView {
             String updatedName = sc.next();
             ConsoleUtil.writeEmptyLines();
             updatedLabel.get().setName(updatedName);
-            labelController.update(updatedLabel.get());
-            ConsoleUtil.printOperationResult("Label updated");
+            Optional<Label> label = labelController.update(updatedLabel.get());
+            ConsoleUtil.writeEmptyLines();
+            ConsoleUtil.printOperationResult(label.isPresent()?label.get().toString():"Can not update label");
         } else {
             ConsoleUtil.printOperationResult("No label with such id");
         }
@@ -76,8 +77,9 @@ public class LabelView {
     private void delete() {
         Long deleteId = ConsoleUtil.readLong(sc, "Label id: ");
         ConsoleUtil.writeEmptyLines();
+        ConsoleUtil.printOperationResult("");
         labelController.delete(deleteId);
-        ConsoleUtil.printOperationResult("label deleted");
+
     }
 
     private void findAll() {

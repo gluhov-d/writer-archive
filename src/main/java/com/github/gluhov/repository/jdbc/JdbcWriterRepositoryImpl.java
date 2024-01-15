@@ -1,67 +1,44 @@
 package com.github.gluhov.repository.jdbc;
 
-import com.github.gluhov.model.Label;
 import com.github.gluhov.model.Post;
-import com.github.gluhov.model.PostStatus;
 import com.github.gluhov.model.Writer;
 import com.github.gluhov.repository.WriterRepository;
 import com.github.gluhov.util.DatabaseUtil;
+import com.github.gluhov.util.JdbcRepositoryUtil;
 
 import java.sql.*;
 import java.util.*;
 
 public class JdbcWriterRepositoryImpl implements WriterRepository {
+    private final String GET_BY_ID = """
+                     SELECT w.*,
+                      wp.post_id, p.*,
+                      pl.label_id, l.*
+                     FROM writer w
+                     LEFT JOIN writer_post wp ON w.id = wp.writer_id
+                     LEFT JOIN post p ON wp.post_id = p.id
+                     LEFT JOIN post_label pl ON p.id = pl.post_id
+                     LEFT JOIN label l ON pl.label_id = l.id
+                     WHERE w.id = ?;""";
+    private final String DELETE_BY_ID = "DELETE FROM Writer WHERE id=?;";
+    private final String INSERT = "INSERT INTO Writer (firstName, lastName) VALUES (?, ?);";
+    private final String INSERT_POSTS = "INSERT INTO Writer_Post (writer_id, post_id) VALUES (?, ?);";
+    private final String UPDATE = "UPDATE Writer SET firstName = ?, lastName = ? WHERE id=?;";
+    private final String WRITERS_POST_TO_UPDATE = "SELECT * FROM Writer_Post WHERE writer_id=?;";
+    private final String DELETE_POST = "DELETE FROM Writer_Post WHERE writer_id=? AND post_id=?;";
+    private final String GET_ALL = "SELECT * FROM Writer";
+    private final String CHECK_EXISTS = "SELECT * FROM Writer WHERE id = ?;";
 
     @Override
     public Optional<Writer> getById(Long id) {
-        try (Connection connection = DatabaseUtil.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement("SELECT w.*,\n"+
-                     " wp.post_id, p.*,\n" +
-                     " pl.label_id, l.*\n" +
-                     "FROM writer w\n" +
-                     "LEFT JOIN writer_post wp ON w.id = wp.writer_id\n" +
-                     "LEFT JOIN post p ON wp.post_id = p.id\n" +
-                     "LEFT JOIN post_label pl ON p.id = pl.post_id\n" +
-                     "LEFT JOIN label l ON pl.label_id = l.id\n" +
-                     "WHERE w.id = ?;")){
+        Connection connection = DatabaseUtil.getInstance().getConnection(true);
+        try (PreparedStatement preparedStatement = connection.prepareStatement(GET_BY_ID)){
             preparedStatement.setLong(1, id);
-            Writer writer = null;
-            Map<Long, Post> postsMap = new HashMap<>();
+
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                while (resultSet.next()) {
-                    if (writer == null) {
-                        writer = getWriter(resultSet);
-                    }
+                return Optional.of(JdbcRepositoryUtil.getWriterWithPostsAndLabels(resultSet));
+            }
 
-                    long postId = resultSet.getLong("post_id");
-                    if (!resultSet.wasNull() && !postsMap.containsKey(postId)) {
-                        Post post = new Post();
-                        post.setId(postId);
-                        post.setContent(resultSet.getString("content"));
-                        post.setStatus(PostStatus.valueOf(resultSet.getString("status").toUpperCase()));
-                        post.setCreated(resultSet.getTimestamp("created").toLocalDateTime());
-                        post.setUpdated(resultSet.getTimestamp("updated").toLocalDateTime());
-                        post.setLabels(new ArrayList<>());
-                        postsMap.put(postId, post);
-                    }
-
-                    long labelId = resultSet.getLong("label_id");
-                    if (!resultSet.wasNull()) {
-                        Label label = new Label();
-                        label.setId(labelId);
-                        label.setName(resultSet.getString("name"));
-                        postsMap.get(postId).getLabels().add(label);
-                    }
-                }
-            }
-            List<Post> writerPosts = new ArrayList<>();
-            for (Map.Entry<Long, Post> p: postsMap.entrySet()) {
-                writerPosts.add(p.getValue());
-            }
-            if (writer != null) {
-                writer.setPosts(writerPosts);
-                return Optional.of(writer);
-            }
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -70,8 +47,8 @@ public class JdbcWriterRepositoryImpl implements WriterRepository {
 
     @Override
     public void deleteById(Long id) {
-        try (Connection connection = DatabaseUtil.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement("DELETE FROM Writer WHERE id=?")){
+        Connection connection = DatabaseUtil.getInstance().getConnection(true);
+        try (PreparedStatement preparedStatement = connection.prepareStatement(DELETE_BY_ID)){
             preparedStatement.setLong(1, id);
             int affectedRows = preparedStatement.executeUpdate();
 
@@ -86,11 +63,9 @@ public class JdbcWriterRepositoryImpl implements WriterRepository {
     }
 
     @Override
-    public Writer save(Writer writer) {
-        try (Connection connection = DatabaseUtil.getConnection()) {
-            try {
-                connection.setAutoCommit(false);
-                PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO Writer (firstName, lastName) VALUES (?, ?);", Statement.RETURN_GENERATED_KEYS);
+    public Optional<Writer> save(Writer writer) {
+        Connection connection = DatabaseUtil.getInstance().getConnection(false);
+            try (PreparedStatement preparedStatement = connection.prepareStatement(INSERT, Statement.RETURN_GENERATED_KEYS)){
                 preparedStatement.setString(1, writer.getFirstName());
                 preparedStatement.setString(2, writer.getLastName());
                 int affectedRows = preparedStatement.executeUpdate();
@@ -104,80 +79,85 @@ public class JdbcWriterRepositoryImpl implements WriterRepository {
                             throw new SQLException("Writer was saved, but can't get ID.");
                         }
                     }
-                    for (Post post: writer.getPosts()) {
-                        try (PreparedStatement addWriterPosts = connection.prepareStatement("INSERT INTO Writer_Post (writer_id, post_id) VALUES (?, ?);")) {
-                            addWriterPosts.setLong(1, writer.getId());
-                            addWriterPosts.setLong(2, post.getId());
-                            int addedWriterPostRows = addWriterPosts.executeUpdate();
-                            if (addedWriterPostRows == 0) {
-                                throw new SQLException("Not all posts was saved for this writer.");
-                            }
-                        }
-                    }
+                    saveWriterPosts(getPostsId(writer.getPosts()), writer.getId(), connection);
                     connection.commit();
+                    return Optional.of(writer);
                 }
             } catch (SQLException e) {
-                connection.rollback();
+                try {
+                    connection.rollback();
+                } catch (SQLException ex) {
+                    e.printStackTrace();
+                }
                 e.printStackTrace();
-            } finally {
-                connection.setAutoCommit(true);
-                connection.close();
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return writer;
+        return Optional.empty();
     }
 
     @Override
-    public boolean update(Writer writer) {
-        try (Connection connection = DatabaseUtil.getConnection()) {
-            try {
-                connection.setAutoCommit(false);
-                PreparedStatement preparedStatement = connection.prepareStatement("UPDATE Writer SET firstName = ?, lastName = ? WHERE id=?;");
-
+    public Optional<Writer> update(Writer writer) {
+        Connection connection = DatabaseUtil.getInstance().getConnection(false);
+            try (PreparedStatement preparedStatement = connection.prepareStatement(UPDATE)){
                 preparedStatement.setString(1, writer.getFirstName());
                 preparedStatement.setString(2, writer.getLastName());
                 preparedStatement.setLong(3, writer.getId());
                 int affectedRows = preparedStatement.executeUpdate();
 
                 if (affectedRows > 0) {
-                    PreparedStatement deleteWriterPosts = connection.prepareStatement("DELETE FROM Writer_Post WHERE writer_id=?;");
-                    deleteWriterPosts.setLong(1, writer.getId());
-                    deleteWriterPosts.executeUpdate();
-                    for (Post post: writer.getPosts()) {
-                        PreparedStatement addWriterPosts = connection.prepareStatement("INSERT INTO Writer_Post (writer_id, post_id) VALUES (?, ?);");
-                        addWriterPosts.setLong(1, writer.getId());
-                        addWriterPosts.setLong(2, post.getId());
-                        int addedWriterPostRows = addWriterPosts.executeUpdate();
-                        if (addedWriterPostRows == 0) {
-                            throw new SQLException("Not all posts was saved for this writer.");
+                    try(PreparedStatement allWriterPosts = connection.prepareStatement(WRITERS_POST_TO_UPDATE)) {
+                        allWriterPosts.setLong(1, writer.getId());
+                        ResultSet postsToUpdate = allWriterPosts.executeQuery();
+                        Set<Long> existingPosts = new HashSet<>();
+                        while (postsToUpdate.next()) {
+                            existingPosts.add(postsToUpdate.getLong("post_id"));
                         }
+                        if (existingPosts.isEmpty()) {
+                            saveWriterPosts(getPostsId(writer.getPosts()), writer.getId(), connection);
+                        } else {
+                            Set<Long> postsToSave = new HashSet<>();
+                            writer.getPosts().forEach(p -> postsToSave.add(p.getId()));
+                            Set<Long> postsToDelete = new HashSet<>(existingPosts);
+                            postsToDelete.removeAll(postsToSave);
+                            for (Long id: postsToDelete) {
+                                try (PreparedStatement deleteWriterPosts = connection.prepareStatement(DELETE_POST)){
+                                    deleteWriterPosts.setLong(1, writer.getId());
+                                    deleteWriterPosts.setLong(2, id);
+                                    int deletedPostsRows = deleteWriterPosts.executeUpdate();
+                                    if (deletedPostsRows == 0) {
+                                        throw new SQLException("Not all posts was saved for this writer.");
+                                    }
+                                }
+                            }
+                            postsToSave.removeAll(existingPosts);
+                            if (!postsToSave.isEmpty()) {
+                                saveWriterPosts(postsToSave, writer.getId(), connection);
+                            }
+                        }
+                        connection.commit();
+                        return Optional.of(writer);
+                    } catch (SQLException e) {
+                        e.printStackTrace();
                     }
-                    connection.commit();
-                    return true;
                 }
             } catch (SQLException e) {
-                connection.rollback();
+                try {
+                    connection.rollback();
+                } catch (SQLException ex) {
+                    e.printStackTrace();
+                }
                 e.printStackTrace();
-            } finally {
-                connection.setAutoCommit(true);
-                connection.close();
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return false;
+        return Optional.empty();
     }
 
     @Override
     public List<Writer> findAll() {
         List<Writer> writers = new ArrayList<>();
-        try (Connection connection = DatabaseUtil.getConnection();
-             Statement statement = connection.createStatement()){
-            ResultSet resultSet = statement.executeQuery("SELECT * FROM Writer");
+        Connection connection = DatabaseUtil.getInstance().getConnection(true);
+        try (Statement statement = connection.createStatement()){
+            ResultSet resultSet = statement.executeQuery(GET_ALL);
             while (resultSet.next()) {
-                writers.add(getWriter(resultSet));
+                writers.add(JdbcRepositoryUtil.getWriter(resultSet));
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -187,22 +167,26 @@ public class JdbcWriterRepositoryImpl implements WriterRepository {
 
     @Override
     public Boolean checkIfExists(Long id) {
-        try (Connection connection = DatabaseUtil.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM Writer WHERE id = ?;")){
-            preparedStatement.setLong(1, id);
-            ResultSet resultSet = preparedStatement.executeQuery();
-            return resultSet.next();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return false;
+        return JdbcRepositoryUtil.checkIfExists(id, CHECK_EXISTS);
     }
 
-    private static Writer getWriter(ResultSet resultSet) throws SQLException {
-        Writer writer = new Writer();
-        writer.setId( resultSet.getLong("id"));
-        writer.setFirstName(resultSet.getString("firstName"));
-        writer.setLastName(resultSet.getString("lastName"));
-        return writer;
+    private Set<Long> getPostsId(List<Post> post) {
+        Set<Long> ids = new HashSet<>();
+        post.forEach(p -> ids.add(p.getId()));
+        return ids;
     }
+
+    private void saveWriterPosts(Set<Long> posts, long writerId, Connection connection) throws SQLException {
+        for (Long post: posts) {
+            try (PreparedStatement addWriterPosts = connection.prepareStatement(INSERT_POSTS)) {
+                addWriterPosts.setLong(1, writerId);
+                addWriterPosts.setLong(2, post);
+                int addedWriterPostRows = addWriterPosts.executeUpdate();
+                if (addedWriterPostRows == 0) {
+                    throw new SQLException("Not all posts was saved for this writer.");
+                }
+            }
+        }
+    }
+
 }

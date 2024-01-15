@@ -1,9 +1,9 @@
 package com.github.gluhov.view;
 
+import com.github.gluhov.controller.WriterController;
 import com.github.gluhov.model.Writer;
 import com.github.gluhov.util.ConsoleUtil;
 import lombok.RequiredArgsConstructor;
-import com.github.gluhov.controller.WriterController;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -78,8 +78,8 @@ public class WriterView {
             List<Long> updatedPosts = readAllPostsIds();
             updatedWriter.get().setFirstName(updatedFirstName);
             updatedWriter.get().setLastName(updatedLastName);
-            String result = writerController.updateWithPosts(updatedWriter.get(), updatedPosts)?"updated.":"not updated.";
-            ConsoleUtil.printOperationResult("Writer " + result);
+            Optional<Writer> writer = writerController.updateWithPosts(updatedWriter.get(), updatedPosts);
+            ConsoleUtil.printOperationResult(writer.isPresent()?writer.get().toString():"No writer with such id");
         } else {
             ConsoleUtil.printOperationResult("No writer with such id");
         }
@@ -94,9 +94,8 @@ public class WriterView {
         List<Long> posts = readAllPostsIds();
         ConsoleUtil.writeEmptyLines();
         Writer createdWriter = Writer.builder().firstName(firstName).lastName(lastName).build();
-        Writer created = writerController.saveWithPosts(createdWriter, posts);
-        ConsoleUtil.printOperationResult("Writer created");
-        System.out.println(created);
+        Optional<Writer> writer = writerController.saveWithPosts(createdWriter, posts);
+        ConsoleUtil.printOperationResult(writer.isPresent()?writer.get().toString():"Can not create writer.");
     }
 
     private void view() {

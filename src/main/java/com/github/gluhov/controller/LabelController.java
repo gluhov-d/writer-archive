@@ -1,7 +1,7 @@
 package com.github.gluhov.controller;
 
 import com.github.gluhov.model.Label;
-import com.github.gluhov.repository.LabelRepository;
+import com.github.gluhov.service.LabelService;
 import lombok.RequiredArgsConstructor;
 
 import java.util.List;
@@ -9,21 +9,21 @@ import java.util.Optional;
 
 @RequiredArgsConstructor
 public class LabelController {
-    private final LabelRepository labelRepository;
+    private final LabelService labelService;
 
     public Optional<Label> get(Long id) {
-        return labelRepository.getById(id);
+        return labelService.getById(id);
     }
 
     public void delete(Long id) {
-        labelRepository.deleteById(id);
+        labelService.deleteById(id);
     }
 
-    public Label save(Label l) { return labelRepository.save(l); }
+    public Optional<Label> save(Label l) { return labelService.save(l); }
 
-    public boolean update(Label l) { return labelRepository.update(l); }
+    public Optional<Label> update(Label l) { return labelService.update(l); }
 
     public List<Label> findAll() {
-        return labelRepository.findAll();
+        return labelService.findAll();
     }
 }

@@ -66,12 +66,11 @@ public class PostView {
     private void create() {
         System.out.print("Post content:");
         String content = sc.next();
-        int updatedStatus = ConsoleUtil.readInt(sc, "Status (ACTIVE - 1; UNDER_REVIEW - 2; DELETED - 3):");
+        int updatedStatus = ConsoleUtil.readInt(sc, "Status (ACTIVE - 0; UNDER_REVIEW - 1; DELETED - 2):");
         List<Long> labels = readAllLabelsIds();
         ConsoleUtil.writeEmptyLines();
-        Post created = postController.saveWithLabels(Post.builder().content(content).status(PostStatus.values()[updatedStatus]).build(), labels);
-        ConsoleUtil.printOperationResult("Post created: ");
-        System.out.println(created);
+        Optional<Post> created = postController.saveWithLabels(Post.builder().content(content).status(PostStatus.values()[updatedStatus]).build(), labels);
+        ConsoleUtil.printOperationResult(created.isPresent()?created.get().toString():"Can not create post");
         System.out.println();
     }
 
@@ -81,12 +80,12 @@ public class PostView {
         if (updatedPost.isPresent()) {
             System.out.print("Content: ");
             String updatedContent = sc.next();
-            int updatedStatus = ConsoleUtil.readInt(sc, "Status (ACTIVE - 1; UNDER_REVIEW - 2; DELETED - 3):");
+            int updatedStatus = ConsoleUtil.readInt(sc, "Status (ACTIVE - 0; UNDER_REVIEW - 1; DELETED - 2):");
             List<Long> updatedLabels = readAllLabelsIds();
             updatedPost.get().setContent(updatedContent);
-            updatedPost.get().setStatus(PostStatus.values()[updatedStatus-1]);
-            String result = postController.updateWithLabels(updatedPost.get(), updatedLabels)? "updated.": "not updated.";
-            System.out.println("Post was " + result);
+            updatedPost.get().setStatus(PostStatus.values()[updatedStatus]);
+            Optional<Post> post = postController.updateWithLabels(updatedPost.get(), updatedLabels);
+            ConsoleUtil.printOperationResult(post.isPresent()?post.get().toString():"Can not update post");
         } else {
             ConsoleUtil.printOperationResult("No post with such id");
         }

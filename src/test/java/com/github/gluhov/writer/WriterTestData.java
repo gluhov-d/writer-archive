@@ -3,6 +3,7 @@ package com.github.gluhov.writer;
 import com.github.gluhov.model.Writer;
 
 import java.util.List;
+import java.util.Optional;
 
 import static com.github.gluhov.post.PostTestData.*;
 
@@ -13,6 +14,8 @@ public class WriterTestData {
     public static final Writer writer1 = new Writer(WRITER_ID, "John", "Doe");
     public static final Writer writer2 = new Writer(WRITER_ID + 1, "Jane", "Smith");
     public static final Writer writer3 = new Writer(WRITER_ID + 2, "Emily", "Johnson");
+
+    public static Optional<Writer> getUpdated() { return Optional.of(new Writer(WRITER_ID, "Emily", "Clark"));}
 
     static {
         writer1.setPosts(List.of(post1, post3));

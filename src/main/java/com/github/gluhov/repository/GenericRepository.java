@@ -9,9 +9,9 @@ public interface GenericRepository<T, ID> {
 
     void deleteById(ID id);
 
-    T save(T entity);
+    Optional<T> save(T entity);
 
-    boolean update(T entity);
+    Optional<T> update(T entity);
 
     List<T> findAll();
 
