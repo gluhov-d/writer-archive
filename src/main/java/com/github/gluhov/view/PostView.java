@@ -44,12 +44,12 @@ public class PostView {
     }
 
     private void findAll() {
-        List<Post> posts = postController.findAll();
+        Optional<List<Post>> posts = postController.findAll();
         ConsoleUtil.printOperationResult("Available active posts: ");
-        if (posts == null) {
+        if (posts.isEmpty()) {
             System.out.println("No posts available");
         } else {
-            for (Post p : posts) {
+            for (Post p : posts.get()) {
                 System.out.println(p);
             }
         }

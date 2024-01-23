@@ -15,7 +15,7 @@ public class PostService {
 
     public Optional<Post> getById(Long id) { return postRepository.getById(id);}
     public void deleteById(Long id) { postRepository.deleteById(id);}
-    public List<Post> findAll() { return postRepository.findAll();}
+    public Optional<List<Post>> findAll() { return postRepository.findAll();}
 
     public Boolean checkIfExists(Long id) { return postRepository.checkIfExists(id);}
 

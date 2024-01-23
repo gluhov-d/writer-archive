@@ -151,18 +151,19 @@ public class JdbcWriterRepositoryImpl implements WriterRepository {
     }
 
     @Override
-    public List<Writer> findAll() {
-        List<Writer> writers = new ArrayList<>();
+    public Optional<List<Writer>> findAll() {
         Connection connection = DatabaseUtil.getInstance().getConnection(true);
         try (Statement statement = connection.createStatement()){
             ResultSet resultSet = statement.executeQuery(GET_ALL);
+            List<Writer> writers = new ArrayList<>();
             while (resultSet.next()) {
                 writers.add(JdbcRepositoryUtil.getWriter(resultSet));
             }
+            return Optional.of(writers);
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return writers;
+        return Optional.empty();
     }
 
     @Override

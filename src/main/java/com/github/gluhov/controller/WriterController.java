@@ -38,7 +38,7 @@ public class WriterController {
         return writerService.updateWithPosts(w, postsId);
     }
 
-    public List<Writer> findAll() {
+    public Optional<List<Writer>> findAll() {
         return writerService.findAll();
     }
 }

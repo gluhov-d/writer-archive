@@ -23,7 +23,7 @@ public class LabelController {
 
     public Optional<Label> update(Label l) { return labelService.update(l); }
 
-    public List<Label> findAll() {
+    public Optional<List<Label>> findAll() {
         return labelService.findAll();
     }
 }

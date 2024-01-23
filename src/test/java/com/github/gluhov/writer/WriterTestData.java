@@ -15,6 +15,8 @@ public class WriterTestData {
     public static final Writer writer2 = new Writer(WRITER_ID + 1, "Jane", "Smith");
     public static final Writer writer3 = new Writer(WRITER_ID + 2, "Emily", "Johnson");
 
+    public static List<Writer> allWriters = List.of(writer1, writer2, writer3);
+
     public static Optional<Writer> getUpdated() { return Optional.of(new Writer(WRITER_ID, "Emily", "Clark"));}
 
     static {

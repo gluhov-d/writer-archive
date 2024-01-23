@@ -79,6 +79,14 @@ public class WriterControllerTest {
     }
 
     @Test
+    void findAll() {
+        when(writerService.findAll()).thenReturn(Optional.of(allWriters));
+        Optional<List<Writer>> result = writerController.findAll();
+        assertFalse(result.isEmpty());
+        assertEquals(allWriters.size(), result.get().size());
+    }
+
+    @Test
     void checkIfExists() {
         when(writerService.checkIfExists(WRITER_ID)).thenReturn(true);
         boolean result = writerController.checkIfWriterExists(WRITER_ID);

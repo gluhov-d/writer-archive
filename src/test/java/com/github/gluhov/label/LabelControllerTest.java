@@ -72,9 +72,9 @@ class LabelControllerTest {
 
     @Test
     void findAll() {
-        when(labelService.findAll()).thenReturn(allLabels);
-        List<Label> result = labelController.findAll();
-        assertNotNull(result);
-        assertEquals(allLabels.size(), result.size());
+        when(labelService.findAll()).thenReturn(Optional.of(allLabels));
+        Optional<List<Label>> result = labelController.findAll();
+        assertFalse(result.isEmpty());
+        assertEquals(allLabels.size(), result.get().size());
     }
 }

@@ -13,7 +13,7 @@ public interface GenericRepository<T, ID> {
 
     Optional<T> update(T entity);
 
-    List<T> findAll();
+    Optional<List<T>> findAll();
 
     Boolean checkIfExists(ID id);
 }

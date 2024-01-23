@@ -30,9 +30,10 @@ public class PostController {
 
     public boolean checkIfPostExists(Long id) { return postService.checkIfExists(id); }
 
-    public List<Post> findAll() {
-        return postService.findAll().stream()
+    public Optional<List<Post>> findAll() {
+        Optional<List<Post>> posts = postService.findAll();
+        return posts.map(postList -> postList.stream()
                 .filter(p -> p.getStatus().equals(PostStatus.ACTIVE))
-                .collect(Collectors.toList());
+                .collect(Collectors.toList()));
     }
 }

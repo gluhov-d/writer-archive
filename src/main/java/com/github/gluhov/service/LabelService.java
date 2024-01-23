@@ -16,5 +16,5 @@ public class LabelService {
     public Optional<Label> save(Label label) { return labelRepository.save(label);}
     public Optional<Label> update(Label label) { return labelRepository.update(label);}
     public Boolean checkIfExists(Long id) { return labelRepository.checkIfExists(id);}
-    public List<Label> findAll() { return labelRepository.findAll();}
+    public Optional<List<Label>> findAll() { return labelRepository.findAll();}
 }

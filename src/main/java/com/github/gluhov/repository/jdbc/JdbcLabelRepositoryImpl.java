@@ -99,18 +99,19 @@ public class JdbcLabelRepositoryImpl implements LabelRepository {
     }
 
     @Override
-    public List<Label> findAll() {
-        List<Label> labels = new ArrayList<>();
+    public Optional<List<Label>> findAll() {
         Connection connection = DatabaseUtil.getInstance().getConnection(true);
         try (Statement statement = connection.createStatement();
              ResultSet resultSet = statement.executeQuery(FIND_ALL)) {
+            List<Label> labels = new ArrayList<>();
                 while(resultSet.next()) {
                     labels.add(JdbcRepositoryUtil.getLabel(resultSet));
                 }
+            return Optional.of(labels);
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return labels;
+        return Optional.empty();
     }
 
     @Override

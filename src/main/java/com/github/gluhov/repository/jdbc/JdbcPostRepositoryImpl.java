@@ -180,19 +180,19 @@ public class JdbcPostRepositoryImpl implements PostRepository {
     }
 
     @Override
-    public List<Post> findAll() {
-        List<Post> posts = new ArrayList<>();
+    public Optional<List<Post>> findAll() {
         Connection connection = DatabaseUtil.getInstance().getConnection(true);
-
         try (PreparedStatement statement = connection.prepareStatement(ALL_POSTS);
              ResultSet resultSet = statement.executeQuery()){
+            List<Post> posts = new ArrayList<>();
             while (resultSet.next()) {
                 posts.add(JdbcRepositoryUtil.getPost(resultSet));
             }
+            return Optional.of(posts);
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return posts;
+        return Optional.empty();
     }
 
     @Override

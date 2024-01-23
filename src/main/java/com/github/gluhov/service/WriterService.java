@@ -21,7 +21,7 @@ public class WriterService {
         writerRepository.deleteById(id);
     }
 
-    public List<Writer> findAll() {
+    public Optional<List<Writer>> findAll() {
         return writerRepository.findAll();
     }
 

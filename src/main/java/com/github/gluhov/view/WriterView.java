@@ -45,12 +45,12 @@ public class WriterView {
     }
 
     private void findAll() {
-        List<Writer> writers = writerController.findAll();
+        Optional<List<Writer>> writers = writerController.findAll();
         ConsoleUtil.printOperationResult("Available active writers: ");
-        if (writers == null) {
+        if (writers.isEmpty()) {
             System.out.println("No posts available");
         } else {
-            for (Writer w : writers) {
+            for (Writer w : writers.get()) {
                 System.out.println(w);
             }
         }

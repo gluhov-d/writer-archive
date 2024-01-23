@@ -83,10 +83,14 @@ public class LabelView {
     }
 
     private void findAll() {
-        List<Label> labels = labelController.findAll();
+        Optional<List<Label>> labels = labelController.findAll();
         ConsoleUtil.printOperationResult("Available active labels: ");
-        for (Label l : labels) {
-            System.out.println(l);
+        if (labels.isPresent()) {
+            for (Label l : labels.get()) {
+                System.out.println(l);
+            }
+        } else {
+            System.out.println("No labels available");
         }
         System.out.println();
     }

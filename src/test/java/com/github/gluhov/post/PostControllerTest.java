@@ -88,10 +88,10 @@ public class PostControllerTest {
 
     @Test
     void findAll() {
-        when(postService.findAll()).thenReturn(allActivePosts);
-        List<Post> result = postController.findAll();
-        assertNotNull(result);
-        assertEquals(allActivePosts.size(), result.size());
+        when(postService.findAll()).thenReturn(Optional.of(allActivePosts));
+        Optional<List<Post>> result = postController.findAll();
+        assertFalse(result.isEmpty());
+        assertEquals(allActivePosts.size(), result.get().size());
     }
 
 }
