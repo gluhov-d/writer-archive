@@ -1,28 +1,23 @@
 package com.github.gluhov.util;
 
-import liquibase.command.CommandScope;
-import liquibase.command.core.helpers.DbUrlConnectionArgumentsCommandStep;
-import liquibase.database.Database;
-import liquibase.database.DatabaseFactory;
-import liquibase.database.jvm.JdbcConnection;
-import liquibase.exception.CommandExecutionException;
-import liquibase.exception.LiquibaseException;
+import com.github.gluhov.config.FlywayConfig;
+import org.flywaydb.core.Flyway;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.Properties;
 
 public class DatabaseUtil {
-    private static final String URL = "jdbc:mysql://localhost:3306/writers";
-    private static final String USERNAME = "writers";
-    private static final String PASSWORD = "ScjymDL";
-    private static final String CHANGELOG_PATH = "db/changelog/db.changelog-master.yaml";
-
+    private static final String FLYWAY_PATH = "db/flyway.properties";
     private static DatabaseUtil instance = null;
+    private static Properties properties = null;
     private Connection autoCommitTrueConnection = null;
     private Connection autoCommitFalseConnection = null;
 
     private DatabaseUtil() {
+        FlywayConfig flywayConfig = new FlywayConfig(FLYWAY_PATH);
+        properties = flywayConfig.getProperties();
         initConnections();
     }
 
@@ -42,7 +37,9 @@ public class DatabaseUtil {
     }
 
     private Connection createConnection(boolean autoCommit) throws SQLException {
-        Connection connection = DriverManager.getConnection(URL, USERNAME, PASSWORD);
+        Connection connection = DriverManager.getConnection(properties.getProperty("flyway.url"),
+                properties.getProperty("flyway.user"),
+                properties.getProperty("flyway.password"));
         connection.setAutoCommit(autoCommit);
         return connection;
     }
@@ -59,16 +56,15 @@ public class DatabaseUtil {
         return autoCommit ? autoCommitTrueConnection : autoCommitFalseConnection;
     }
 
-    public void migrateDatabase() throws LiquibaseException, SQLException {
-        Database database = DatabaseFactory.getInstance().findCorrectDatabaseImplementation(new JdbcConnection(getConnection(true)));
-        update(database);
-    }
+    public void migrateDatabase() throws SQLException {
+        Flyway flyway = Flyway.configure()
+                .dataSource(properties.getProperty("flyway.url"),
+                        properties.getProperty("flyway.user"),
+                        properties.getProperty("flyway.password"))
+                .locations(properties.getProperty("flyway.locations"))
+                .load();
 
-    private void update(Database database) throws CommandExecutionException {
-        new CommandScope("update")
-                .addArgumentValue(DbUrlConnectionArgumentsCommandStep.DATABASE_ARG, database)
-                .addArgumentValue("changeLogFile", CHANGELOG_PATH)
-                .execute();
+        flyway.migrate();
     }
 
     public void closeConnections() {

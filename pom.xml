@@ -14,13 +14,19 @@
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <mockito.version>5.8.0</mockito.version>
         <lombok.version>1.18.30</lombok.version>
+        <!-- db -->
         <mysql.connector.version>8.0.33</mysql.connector.version>
-        <liquibase.version>4.25.1</liquibase.version>
+        <flyway.version>10.6.0</flyway.version>
+        <!-- test -->
         <junit.platform.launcher.version>1.10.1</junit.platform.launcher.version>
         <junit.jupiter.version>5.10.1</junit.jupiter.version>
         <surefire.plugin.version>3.2.5</surefire.plugin.version>
+        <mockito.version>5.8.0</mockito.version>
+        <!-- hibernate -->
+        <hibernate.version>6.4.2.Final</hibernate.version>
+        <hibernate.validator.version>8.0.1.Final</hibernate.validator.version>
+        <javax-el.version>5.0.0</javax-el.version>
     </properties>
 
     <dependencies>
@@ -36,9 +42,27 @@
             <version>${mysql.connector.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.liquibase</groupId>
-            <artifactId>liquibase-core</artifactId>
-            <version>${liquibase.version}</version>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-mysql</artifactId>
+            <version>${flyway.version}</version>
+        </dependency>
+
+
+        <!-- hibernate -->
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-core</artifactId>
+            <version>${hibernate.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-validator</artifactId>
+            <version>${hibernate.validator.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.expressly</groupId>
+            <artifactId>expressly</artifactId>
+            <version>${javax-el.version}</version>
         </dependency>
 
         <!-- JUnit -->
