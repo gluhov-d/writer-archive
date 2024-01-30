@@ -1,6 +1,6 @@
 CREATE TABLE Writer (
                         id BIGINT AUTO_INCREMENT PRIMARY KEY,
-                        firstName VARCHAR(255),
+                        firstName VARCHAR(255) NOT NULL ,
                         lastName VARCHAR(255)
 );
 
@@ -12,7 +12,7 @@ CREATE TABLE Label (
 CREATE TABLE Post (
                       id BIGINT AUTO_INCREMENT PRIMARY KEY,
                       writer_id BIGINT,
-                      content TEXT,
+                      content TEXT NOT NULL ,
                       created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                       updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                       status ENUM('ACTIVE', 'UNDER_REVIEW', 'DELETED'),

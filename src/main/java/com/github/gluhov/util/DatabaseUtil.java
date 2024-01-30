@@ -1,82 +1,57 @@
 package com.github.gluhov.util;
 
-import com.github.gluhov.config.FlywayConfig;
 import org.flywaydb.core.Flyway;
+import org.hibernate.SessionFactory;
+import org.hibernate.boot.Metadata;
+import org.hibernate.boot.MetadataSources;
+import org.hibernate.boot.registry.StandardServiceRegistry;
+import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
+import org.hibernate.cfg.Configuration;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
 import java.util.Properties;
 
 public class DatabaseUtil {
-    private static final String FLYWAY_PATH = "db/flyway.properties";
-    private static DatabaseUtil instance = null;
-    private static Properties properties = null;
-    private Connection autoCommitTrueConnection = null;
-    private Connection autoCommitFalseConnection = null;
+    private static SessionFactory sessionFactory = buildSessionFactory();
 
-    private DatabaseUtil() {
-        FlywayConfig flywayConfig = new FlywayConfig(FLYWAY_PATH);
-        properties = flywayConfig.getProperties();
-        initConnections();
-    }
-
-    private void initConnections() {
+    private static SessionFactory buildSessionFactory() {
         try {
-            if (autoCommitTrueConnection == null || autoCommitTrueConnection.isClosed()) {
-                autoCommitTrueConnection = createConnection(true);
-                autoCommitTrueConnection.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
+            if (sessionFactory == null) {
+                StandardServiceRegistry standardRegistry
+                        = new StandardServiceRegistryBuilder()
+                        .configure("hibernate.cfg.xml")
+                        .build();
+
+                Metadata metadata = new MetadataSources(standardRegistry)
+                        .getMetadataBuilder()
+                        .build();
+
+                sessionFactory = metadata.getSessionFactoryBuilder().build();
             }
-            if (autoCommitFalseConnection == null || autoCommitFalseConnection.isClosed()) {
-                autoCommitFalseConnection = createConnection(false);
-                autoCommitFalseConnection.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException("Error initializing database connections", e);
+            return sessionFactory;
+        } catch (Throwable ex) {
+            throw new ExceptionInInitializerError(ex);
         }
     }
 
-    private Connection createConnection(boolean autoCommit) throws SQLException {
-        Connection connection = DriverManager.getConnection(properties.getProperty("flyway.url"),
-                properties.getProperty("flyway.user"),
-                properties.getProperty("flyway.password"));
-        connection.setAutoCommit(autoCommit);
-        return connection;
+    public static SessionFactory getSessionFactory() {
+        return sessionFactory;
     }
 
-    public static synchronized DatabaseUtil getInstance() {
-        if (instance == null) {
-            instance = new DatabaseUtil();
-        }
-        return instance;
+    public static void shutdown() {
+        getSessionFactory().close();
     }
 
-    public Connection getConnection(boolean autoCommit) {
-        initConnections();
-        return autoCommit ? autoCommitTrueConnection : autoCommitFalseConnection;
-    }
-
-    public void migrateDatabase() throws SQLException {
+    public static void migrateDatabase() {
+        Configuration configuration = new Configuration();
+        configuration.configure("hibernate.cfg.xml");
+        Properties properties = configuration.getProperties();
         Flyway flyway = Flyway.configure()
-                .dataSource(properties.getProperty("flyway.url"),
-                        properties.getProperty("flyway.user"),
-                        properties.getProperty("flyway.password"))
-                .locations(properties.getProperty("flyway.locations"))
+                .dataSource(properties.getProperty("hibernate.connection.url"),
+                        properties.getProperty("hibernate.connection.username"),
+                        properties.getProperty("hibernate.connection.password"))
+                .locations("filesystem:src/main/resources/db/migration")
                 .load();
 
         flyway.migrate();
-    }
-
-    public void closeConnections() {
-        try {
-            if (autoCommitTrueConnection != null && !autoCommitTrueConnection.isClosed()) {
-                autoCommitTrueConnection.close();
-            }
-            if (autoCommitFalseConnection != null && !autoCommitFalseConnection.isClosed()) {
-                autoCommitFalseConnection.close();
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
     }
 }

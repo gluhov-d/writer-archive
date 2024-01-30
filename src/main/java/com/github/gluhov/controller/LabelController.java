@@ -26,4 +26,6 @@ public class LabelController {
     public Optional<List<Label>> findAll() {
         return labelService.findAll();
     }
+
+    public boolean checkIfLabelExists(Long id) { return labelService.checkIfExists(id); }
 }

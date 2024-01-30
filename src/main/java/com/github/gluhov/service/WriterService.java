@@ -4,9 +4,13 @@ import com.github.gluhov.model.Post;
 import com.github.gluhov.model.Writer;
 import com.github.gluhov.repository.PostRepository;
 import com.github.gluhov.repository.WriterRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 @RequiredArgsConstructor
 public class WriterService {
@@ -26,7 +30,7 @@ public class WriterService {
     }
 
     public Boolean checkIfExists(Long id) { return writerRepository.checkIfExists(id);}
-
+    @Transactional
     public Optional<Writer> saveWithPosts(Writer writer, List<Long> postsId) {
         savePosts(writer, postsId);
         return writerRepository.save(writer);
@@ -38,10 +42,10 @@ public class WriterService {
     }
 
     private void savePosts(Writer writer, List<Long> postsId) {
-        Map<Long, Post> postsToUpdate = new HashMap<>();
+        Set<Post> postsToUpdate = new HashSet<>();
         for (Long id: postsId) {
-            postRepository.getById(id).ifPresent(p -> postsToUpdate.put(id, p));
+            postRepository.getById(id).ifPresent(postsToUpdate::add);
         }
-        writer.setPosts(new ArrayList<>(postsToUpdate.values()));
+        writer.setPosts(postsToUpdate);
     }
 }

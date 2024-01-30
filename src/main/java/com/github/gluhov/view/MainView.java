@@ -6,9 +6,9 @@ import com.github.gluhov.controller.WriterController;
 import com.github.gluhov.repository.LabelRepository;
 import com.github.gluhov.repository.PostRepository;
 import com.github.gluhov.repository.WriterRepository;
-import com.github.gluhov.repository.jdbc.JdbcLabelRepositoryImpl;
-import com.github.gluhov.repository.jdbc.JdbcPostRepositoryImpl;
-import com.github.gluhov.repository.jdbc.JdbcWriterRepositoryImpl;
+import com.github.gluhov.repository.jpa.JpaLabelRepositoryImpl;
+import com.github.gluhov.repository.jpa.JpaPostRepositoryImpl;
+import com.github.gluhov.repository.jpa.JpaWriterRepositoryImpl;
 import com.github.gluhov.service.LabelService;
 import com.github.gluhov.service.PostService;
 import com.github.gluhov.service.WriterService;
@@ -23,9 +23,9 @@ public class MainView {
     private final PostController postController;
     private final LabelController labelController;
     public MainView() {
-        WriterRepository writerRepository = new JdbcWriterRepositoryImpl();
-        PostRepository postRepository = new JdbcPostRepositoryImpl();
-        LabelRepository labelRepository = new JdbcLabelRepositoryImpl();
+        WriterRepository writerRepository = new JpaWriterRepositoryImpl();
+        PostRepository postRepository = new JpaPostRepositoryImpl();
+        LabelRepository labelRepository = new JpaLabelRepositoryImpl();
         LabelService labelService = new LabelService(labelRepository);
         PostService postService = new PostService(postRepository, labelRepository);
         WriterService writerService = new WriterService(writerRepository, postRepository);
@@ -54,7 +54,7 @@ public class MainView {
                     case 3 -> labelView.displayMenu();
                     case 6 -> {
                         System.out.println("Exiting application...");
-                        DatabaseUtil.getInstance().closeConnections();
+                        DatabaseUtil.shutdown();
                         return;
                     }
                     default -> System.out.println("Invalid choice. Please try again.");

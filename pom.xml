@@ -26,6 +26,7 @@
         <!-- hibernate -->
         <hibernate.version>6.4.2.Final</hibernate.version>
         <hibernate.validator.version>8.0.1.Final</hibernate.validator.version>
+        <c3p0.version>6.4.2.Final</c3p0.version>
         <javax-el.version>5.0.0</javax-el.version>
     </properties>
 
@@ -47,7 +48,6 @@
             <version>${flyway.version}</version>
         </dependency>
 
-
         <!-- hibernate -->
         <dependency>
             <groupId>org.hibernate</groupId>
@@ -58,6 +58,11 @@
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-validator</artifactId>
             <version>${hibernate.validator.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-c3p0</artifactId>
+            <version>${c3p0.version}</version>
         </dependency>
         <dependency>
             <groupId>org.glassfish.expressly</groupId>

@@ -76,10 +76,12 @@ public class LabelView {
 
     private void delete() {
         Long deleteId = ConsoleUtil.readLong(sc, "Label id: ");
-        ConsoleUtil.writeEmptyLines();
-        ConsoleUtil.printOperationResult("");
-        labelController.delete(deleteId);
-
+        if (labelController.checkIfLabelExists(deleteId)) {
+            labelController.delete(deleteId);
+            ConsoleUtil.printOperationResult("Label deleted");
+        } else {
+            ConsoleUtil.printOperationResult("No such label, try again");
+        }
     }
 
     private void findAll() {

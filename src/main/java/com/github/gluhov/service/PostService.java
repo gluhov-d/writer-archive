@@ -4,9 +4,13 @@ import com.github.gluhov.model.Label;
 import com.github.gluhov.model.Post;
 import com.github.gluhov.repository.LabelRepository;
 import com.github.gluhov.repository.PostRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 @RequiredArgsConstructor
 public class PostService {
@@ -19,17 +23,18 @@ public class PostService {
 
     public Boolean checkIfExists(Long id) { return postRepository.checkIfExists(id);}
 
+    @Transactional
     public Optional<Post> saveWithLabels(Post post, List<Long> labelsId) {
         saveLabels(post, labelsId);
         return postRepository.save(post);
     }
 
     private void saveLabels(Post post, List<Long> labelsId) {
-        Map<Long, Label> labelsToSave = new HashMap<>();
+        Set<Label> labelsToSave = new HashSet<>();
         for (Long id: labelsId) {
-            labelRepository.getById(id).ifPresent(l -> labelsToSave.put(id, l));
+            labelRepository.getByIdJoinFetch(id).ifPresent(labelsToSave::add);
         }
-        post.setLabels(new ArrayList<>(labelsToSave.values()));
+        post.setLabels(labelsToSave);
     }
 
     public Optional<Post> updateWithLabels(Post post, List<Long> labelsId) {
