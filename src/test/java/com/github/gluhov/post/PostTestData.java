@@ -3,6 +3,7 @@ package com.github.gluhov.post;
 import com.github.gluhov.model.Post;
 import com.github.gluhov.model.PostStatus;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 
@@ -20,8 +21,8 @@ public class PostTestData {
     public static Optional<Post> getUpdated() { return Optional.of(new Post(POST_ID, "Updated content", PostStatus.UNDER_REVIEW));}
 
     static {
-        post1.setLabels(List.of(label1, label3));
-        post2.setLabels(List.of(label2));
-        post3.setLabels(List.of(label3));
+        post1.setLabels(new HashSet<>(List.of(label1, label3)));
+        post2.setLabels(new HashSet<>(List.of(label2)));
+        post3.setLabels(new HashSet<>(List.of(label3)));
     }
 }

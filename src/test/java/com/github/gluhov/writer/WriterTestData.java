@@ -2,6 +2,7 @@ package com.github.gluhov.writer;
 
 import com.github.gluhov.model.Writer;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 
@@ -20,9 +21,9 @@ public class WriterTestData {
     public static Optional<Writer> getUpdated() { return Optional.of(new Writer(WRITER_ID, "Emily", "Clark"));}
 
     static {
-        writer1.setPosts(List.of(post1, post3));
-        writer2.setPosts(List.of(post2));
-        writer3.setPosts(List.of(post3));
+        writer1.setPosts(new HashSet<>(List.of(post1, post3)));
+        writer2.setPosts(new HashSet<>(List.of(post2)));
+        writer3.setPosts(new HashSet<>(List.of(post3)));
     }
 
 }

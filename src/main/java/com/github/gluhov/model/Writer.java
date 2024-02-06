@@ -4,7 +4,10 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.*;
+import org.hibernate.Hibernate;
 
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 
 @NoArgsConstructor
@@ -22,13 +25,13 @@ public class Writer extends BaseEntity{
     @Column(name = "lastName")
     private String lastName;
 
-    @ManyToMany
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(
             name = "writer_post",
             joinColumns = { @JoinColumn(name = "writer_id") },
             inverseJoinColumns = { @JoinColumn(name = "post_id") }
     )
-    private Set<Post> posts;
+    private Set<Post> posts = new HashSet<>();
 
     public Writer(Long id, String firstName, String lastName) {
         super(id);
@@ -49,14 +52,16 @@ public class Writer extends BaseEntity{
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder("id: " + id + "; first name: " + firstName + "; last name: " + lastName + "; posts: [ ");
-        if (posts != null) {
-            /*Iterator<Post> iterator = posts.iterator();
+        if (Hibernate.isInitialized(posts)) {
+            Iterator<Post> iterator = posts.iterator();
             while (iterator.hasNext()) {
+                sb.append("[ ");
                 sb.append(iterator.next());
-                if (!iterator.hasNext()) {
-                    sb.append(" , ");
+                if (iterator.hasNext()) {
+                    sb.append("] , ");
                 }
-            }*/
+            }
+            sb.append(" ]");
         }
         sb.append(" ]");
         return sb.toString();

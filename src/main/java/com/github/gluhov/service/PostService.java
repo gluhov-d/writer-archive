@@ -2,9 +2,7 @@ package com.github.gluhov.service;
 
 import com.github.gluhov.model.Label;
 import com.github.gluhov.model.Post;
-import com.github.gluhov.repository.LabelRepository;
 import com.github.gluhov.repository.PostRepository;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 import java.util.HashSet;
@@ -15,7 +13,6 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class PostService {
     private final PostRepository postRepository;
-    private final LabelRepository labelRepository;
 
     public Optional<Post> getById(Long id) { return postRepository.getById(id);}
     public void deleteById(Long id) { postRepository.deleteById(id);}
@@ -23,7 +20,6 @@ public class PostService {
 
     public Boolean checkIfExists(Long id) { return postRepository.checkIfExists(id);}
 
-    @Transactional
     public Optional<Post> saveWithLabels(Post post, List<Long> labelsId) {
         saveLabels(post, labelsId);
         return postRepository.save(post);
@@ -32,7 +28,9 @@ public class PostService {
     private void saveLabels(Post post, List<Long> labelsId) {
         Set<Label> labelsToSave = new HashSet<>();
         for (Long id: labelsId) {
-            labelRepository.getByIdJoinFetch(id).ifPresent(labelsToSave::add);
+            Label label = new Label();
+            label.setId(id);
+            labelsToSave.add(label);
         }
         post.setLabels(labelsToSave);
     }
