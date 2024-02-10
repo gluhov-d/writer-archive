@@ -27,10 +27,10 @@ public class MainView {
         PostRepository postRepository = new JpaPostRepositoryImpl();
         LabelRepository labelRepository = new JpaLabelRepositoryImpl();
         LabelService labelService = new LabelService(labelRepository);
-        PostService postService = new PostService(postRepository);
-        WriterService writerService = new WriterService(writerRepository);
+        PostService postService = new PostService(postRepository, labelRepository);
+        WriterService writerService = new WriterService(writerRepository, postRepository);
         this.writerController = new WriterController(writerService, postService);
-        this.postController = new PostController(postService);
+        this.postController = new PostController(postService, labelService);
         this.labelController = new LabelController(labelService);
     }
 

@@ -2,6 +2,7 @@ package com.github.gluhov.controller;
 
 import com.github.gluhov.model.Post;
 import com.github.gluhov.model.PostStatus;
+import com.github.gluhov.service.LabelService;
 import com.github.gluhov.service.PostService;
 import lombok.RequiredArgsConstructor;
 
@@ -12,6 +13,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class PostController {
     private final PostService postService;
+    private final LabelService labelService;
     public Optional<Post> get(Long id) {
         return postService.getById(id);
     }
@@ -29,6 +31,8 @@ public class PostController {
     }
 
     public boolean checkIfPostExists(Long id) { return postService.checkIfExists(id); }
+
+    public boolean checkIfLabelExists(Long id) { return labelService.checkIfExists(id);}
 
     public Optional<List<Post>> findAll() {
         Optional<List<Post>> posts = postService.findAll();

@@ -25,12 +25,13 @@ public class Writer extends BaseEntity{
     @Column(name = "lastName")
     private String lastName;
 
-    @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.MERGE})
     @JoinTable(
             name = "writer_post",
             joinColumns = { @JoinColumn(name = "writer_id") },
             inverseJoinColumns = { @JoinColumn(name = "post_id") }
     )
+    @EqualsAndHashCode.Exclude
     private Set<Post> posts = new HashSet<>();
 
     public Writer(Long id, String firstName, String lastName) {

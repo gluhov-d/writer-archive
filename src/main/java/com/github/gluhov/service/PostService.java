@@ -2,6 +2,7 @@ package com.github.gluhov.service;
 
 import com.github.gluhov.model.Label;
 import com.github.gluhov.model.Post;
+import com.github.gluhov.repository.LabelRepository;
 import com.github.gluhov.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
 
@@ -13,6 +14,7 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class PostService {
     private final PostRepository postRepository;
+    private final LabelRepository labelRepository;
 
     public Optional<Post> getById(Long id) { return postRepository.getById(id);}
     public void deleteById(Long id) { postRepository.deleteById(id);}
@@ -28,9 +30,8 @@ public class PostService {
     private void saveLabels(Post post, List<Long> labelsId) {
         Set<Label> labelsToSave = new HashSet<>();
         for (Long id: labelsId) {
-            Label label = new Label();
-            label.setId(id);
-            labelsToSave.add(label);
+            Optional<Label>  existingLabel = labelRepository.getById(id);
+            existingLabel.ifPresent(labelsToSave::add);
         }
         post.setLabels(labelsToSave);
     }

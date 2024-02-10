@@ -2,20 +2,21 @@ package com.github.gluhov.model;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.*;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import org.hibernate.Hibernate;
+import org.hibernate.annotations.Generated;
+import org.hibernate.generator.EventType;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
-@Data
-@AllArgsConstructor
 @NoArgsConstructor
-@Builder
+@Data
 @EqualsAndHashCode(callSuper = true)
 @Entity
 @Table(name = "post")
@@ -24,21 +25,22 @@ public class Post extends BaseEntity {
     @NotBlank
     @Size(min = 2)
     private String content;
-    @Column(name = "updated", nullable = false, columnDefinition = "timestamp default now()")
-    @NotNull
+    @Column(name = "updated", columnDefinition = "timestamp default now()")
+    @Generated(event = {EventType.INSERT, EventType.UPDATE})
     private LocalDateTime updated;
-    @Column(name = "created", nullable = false, columnDefinition = "timestamp default now()", updatable = false)
-    @NotNull
+    @Column(name = "created", columnDefinition = "timestamp default now()", updatable = false)
+    @Generated(event = {EventType.INSERT})
     private LocalDateTime created;
     @Enumerated(EnumType.STRING)
     @Column(name = "status")
     private PostStatus status;
-    @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.MERGE})
     @JoinTable(
             name = "post_label",
             joinColumns = { @JoinColumn(name = "post_id") },
             inverseJoinColumns = { @JoinColumn(name = "label_id") }
     )
+    @EqualsAndHashCode.Exclude
     private Set<Label> labels = new HashSet<>();
 
     public Post(Long id, String content, PostStatus status) {

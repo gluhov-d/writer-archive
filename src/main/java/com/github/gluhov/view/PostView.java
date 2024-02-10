@@ -69,7 +69,10 @@ public class PostView {
         int updatedStatus = ConsoleUtil.readInt(sc, "Status (ACTIVE - 0; UNDER_REVIEW - 1; DELETED - 2):");
         List<Long> labels = readAllLabelsIds();
         ConsoleUtil.writeEmptyLines();
-        Optional<Post> created = postController.saveWithLabels(Post.builder().content(content).status(PostStatus.values()[updatedStatus]).build(), labels);
+        Post post = new Post();
+        post.setContent(content);
+        post.setStatus(PostStatus.values()[updatedStatus]);
+        Optional<Post> created = postController.saveWithLabels(post, labels);
         ConsoleUtil.printOperationResult(created.isPresent()?created.get().toString():"Can not create post");
         System.out.println();
     }
@@ -109,7 +112,7 @@ public class PostView {
             if (labelId == -1) {
                 break;
             }
-            if (true) {
+            if (postController.checkIfLabelExists(labelId)) {
                 labels.add(labelId);
             } else {
                 ConsoleUtil.printOperationResult("No label with such id");

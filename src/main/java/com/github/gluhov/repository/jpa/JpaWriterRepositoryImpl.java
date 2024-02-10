@@ -11,10 +11,8 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 public class JpaWriterRepositoryImpl implements WriterRepository {
 
@@ -66,23 +64,8 @@ public class JpaWriterRepositoryImpl implements WriterRepository {
     public Optional<Writer> save(Writer writer) {
         try (Session session = sessionFactory.openSession()){
             Transaction transaction = session.beginTransaction();
-            Set<Post> postsToSave = new HashSet<>();
-            for (Post p: writer.getPosts()) {
-                try {
-                    Post existingPost = session.get(Post.class, p.getId());
-                    if (existingPost != null) {
-                        postsToSave.add(existingPost);
-                    }
-                } catch (Exception e) {
-                    if (transaction != null) {
-                        transaction.rollback();
-                    }
-                    System.out.println("Failed to save writer.");
-                }
-            }
-            writer.setPosts(postsToSave);
             session.persist(writer);
-            if (transaction != null) transaction.commit();
+            transaction.commit();
             return Optional.of(writer);
         }
     }
@@ -91,31 +74,10 @@ public class JpaWriterRepositoryImpl implements WriterRepository {
     public Optional<Writer> update(Writer writer) {
         try (Session session = sessionFactory.openSession()) {
             Transaction transaction = session.beginTransaction();
-            try {
-                Writer existingWriter = session.get(Writer.class, writer.getId());
-
-                if (existingWriter != null) {
-                    Set<Post> newPosts = new HashSet<>();
-                    for (Post post: writer.getPosts()) {
-                        Post existingPost = session.get(Post.class, post.getId());
-                        newPosts.add(existingPost);
-                    }
-                    existingWriter.setPosts(newPosts);
-                    existingWriter.setFirstName(writer.getFirstName());
-                    existingWriter.setLastName(writer.getLastName());
-                    session.merge(existingWriter);
-                    transaction.commit();
-                    return Optional.of(existingWriter);
-                }
-            } catch (Exception e) {
-                if (transaction != null) {
-                    transaction.rollback();
-                }
-                System.out.println("Failed to update writer.");
-                e.printStackTrace();
-            }
+            session.merge(writer);
+            transaction.commit();
+            return Optional.of(writer);
         }
-        return Optional.empty();
     }
 
     @Override

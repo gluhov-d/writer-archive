@@ -12,8 +12,8 @@ CREATE TABLE Label (
 CREATE TABLE Post (
                       id BIGINT AUTO_INCREMENT PRIMARY KEY,
                       content TEXT NOT NULL ,
-                      created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                      updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                      created TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+                      updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL,
                       status ENUM('ACTIVE', 'UNDER_REVIEW', 'DELETED')
 );
 
