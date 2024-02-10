@@ -6,7 +6,6 @@ import com.github.gluhov.model.PostStatus;
 import com.github.gluhov.repository.PostRepository;
 import com.github.gluhov.util.DatabaseUtil;
 import jakarta.persistence.Query;
-import org.hibernate.Hibernate;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
@@ -89,14 +88,12 @@ public class JpaPostRepositoryImpl implements PostRepository {
             try {
                 Post existingPost = session.get(Post.class, post.getId());
                 if (existingPost != null) {
-                    Hibernate.initialize(existingPost.getLabels());
-                    existingPost.getLabels().removeIf(existingLabel ->
-                            post.getLabels().stream().noneMatch(newLabel ->
-                                    newLabel.getId().equals(existingLabel.getId())));
+                    Set<Label> newLabels = new HashSet<>();
                     for (Label label : post.getLabels()) {
                         Label existingLabel = session.get(Label.class, label.getId());
-                        existingPost.getLabels().add(existingLabel);
+                        newLabels.add(existingLabel);
                     }
+                    existingPost.setLabels(newLabels);
                     existingPost.setContent(post.getContent());
                     existingPost.setUpdated(LocalDateTime.now());
                     existingPost.setStatus(post.getStatus());

@@ -7,7 +7,6 @@ import com.github.gluhov.util.DatabaseUtil;
 import jakarta.persistence.Query;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.*;
-import org.hibernate.Hibernate;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
@@ -96,14 +95,12 @@ public class JpaWriterRepositoryImpl implements WriterRepository {
                 Writer existingWriter = session.get(Writer.class, writer.getId());
 
                 if (existingWriter != null) {
-                    Hibernate.initialize(existingWriter.getPosts());
-                    existingWriter.getPosts().removeIf(existingPost ->
-                            writer.getPosts().stream().noneMatch(newPost ->
-                                    newPost.getId().equals(existingPost.getId())));
+                    Set<Post> newPosts = new HashSet<>();
                     for (Post post: writer.getPosts()) {
                         Post existingPost = session.get(Post.class, post.getId());
-                        existingWriter.getPosts().add(existingPost);
+                        newPosts.add(existingPost);
                     }
+                    existingWriter.setPosts(newPosts);
                     existingWriter.setFirstName(writer.getFirstName());
                     existingWriter.setLastName(writer.getLastName());
                     session.merge(existingWriter);
