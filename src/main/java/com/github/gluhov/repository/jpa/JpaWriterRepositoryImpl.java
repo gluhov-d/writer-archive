@@ -12,7 +12,10 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 public class JpaWriterRepositoryImpl implements WriterRepository {
 
@@ -47,7 +50,6 @@ public class JpaWriterRepositoryImpl implements WriterRepository {
             try {
                 Writer writer = session.get(Writer.class, id);
                 if (writer != null) {
-                    removePostAssociations(writer);
                     session.remove(writer);
                     transaction.commit();
                 }
@@ -58,15 +60,6 @@ public class JpaWriterRepositoryImpl implements WriterRepository {
                 System.out.println("Failed to delete writer.");
                 e.printStackTrace();
             }
-        }
-    }
-
-    private static void removePostAssociations(Writer writer) {
-        Iterator<Post> postIterator = writer.getPosts().iterator();
-        while (postIterator.hasNext()) {
-            Post post = postIterator.next();
-            postIterator.remove();
-            writer.removePost(post);
         }
     }
 
@@ -104,18 +97,15 @@ public class JpaWriterRepositoryImpl implements WriterRepository {
 
                 if (existingWriter != null) {
                     Hibernate.initialize(existingWriter.getPosts());
-                    existingWriter.setFirstName(writer.getFirstName());
-                    existingWriter.setLastName(writer.getLastName());
-                    existingWriter.getPosts().removeIf(post -> !writer.getPosts().contains(post));
+                    existingWriter.getPosts().removeIf(existingPost ->
+                            writer.getPosts().stream().noneMatch(newPost ->
+                                    newPost.getId().equals(existingPost.getId())));
                     for (Post post: writer.getPosts()) {
                         Post existingPost = session.get(Post.class, post.getId());
-                        if (!existingWriter.getPosts().contains(post)) {
-                            if (!Hibernate.isInitialized(existingPost.getWriters())) {
-                                Hibernate.initialize(existingPost.getWriters());
-                            }
-                            existingWriter.addPost(existingPost);
-                        }
+                        existingWriter.getPosts().add(existingPost);
                     }
+                    existingWriter.setFirstName(writer.getFirstName());
+                    existingWriter.setLastName(writer.getLastName());
                     session.merge(existingWriter);
                     transaction.commit();
                     return Optional.of(existingWriter);

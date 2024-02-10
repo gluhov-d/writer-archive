@@ -1,12 +1,11 @@
 package com.github.gluhov.model;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.*;
-
-import java.util.HashSet;
-import java.util.Set;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -21,24 +20,9 @@ public class Label extends BaseEntity{
     @Column(name = "name")
     private String name;
 
-    @ToString.Exclude
-    @ManyToMany(mappedBy = "labels", cascade = {CascadeType.MERGE, CascadeType.PERSIST})
-    @EqualsAndHashCode.Exclude
-    private Set<Post> posts = new HashSet<>();
-
     public Label(long id, String name) {
         super(id);
         this.name = name;
-    }
-
-    public void addPost(Post p) {
-        this.posts.add(p);
-        p.getLabels().add(this);
-    }
-
-    public void removePost(Post p) {
-        this.posts.remove(p);
-        p.getLabels().remove(this);
     }
 
     @Override

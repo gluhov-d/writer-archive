@@ -25,7 +25,7 @@ public class Writer extends BaseEntity{
     @Column(name = "lastName")
     private String lastName;
 
-    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(
             name = "writer_post",
             joinColumns = { @JoinColumn(name = "writer_id") },
@@ -37,16 +37,6 @@ public class Writer extends BaseEntity{
         super(id);
         this.firstName = firstName;
         this.lastName = lastName;
-    }
-
-    public void addPost(Post p) {
-        this.posts.add(p);
-        p.getWriters().add(this);
-    }
-
-    public void removePost(Post p) {
-        this.posts.remove(p);
-        p.getWriters().remove(this);
     }
 
     @Override

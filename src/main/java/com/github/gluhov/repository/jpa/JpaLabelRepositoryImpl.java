@@ -1,7 +1,6 @@
 package com.github.gluhov.repository.jpa;
 
 import com.github.gluhov.model.Label;
-import com.github.gluhov.model.Post;
 import com.github.gluhov.repository.LabelRepository;
 import com.github.gluhov.util.DatabaseUtil;
 import jakarta.persistence.Query;
@@ -9,7 +8,6 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 
-import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 
@@ -33,11 +31,9 @@ public class JpaLabelRepositoryImpl implements LabelRepository {
             try {
                 Label label = session.get(Label.class, id);
                 if (label != null) {
-                    removePostAssociations(label);
                     session.remove(label);
                     transaction.commit();
                 }
-
             } catch (Exception e) {
                 if (transaction != null) {
                     transaction.rollback();
@@ -45,15 +41,6 @@ public class JpaLabelRepositoryImpl implements LabelRepository {
                 System.out.println("Failed to delete label.");
                 e.printStackTrace();
             }
-        }
-    }
-
-    private static void removePostAssociations(Label label) {
-        Iterator<Post> postIterator = label.getPosts().iterator();
-        while (postIterator.hasNext()) {
-            Post post = postIterator.next();
-            postIterator.remove();
-            label.removePost(post);
         }
     }
 

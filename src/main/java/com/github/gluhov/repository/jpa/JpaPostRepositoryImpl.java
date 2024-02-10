@@ -90,19 +90,16 @@ public class JpaPostRepositoryImpl implements PostRepository {
                 Post existingPost = session.get(Post.class, post.getId());
                 if (existingPost != null) {
                     Hibernate.initialize(existingPost.getLabels());
-                    existingPost.setContent(post.getContent());
-                    existingPost.getLabels().removeIf(label -> !post.getLabels().contains(label));
-
+                    existingPost.getLabels().removeIf(existingLabel ->
+                            post.getLabels().stream().noneMatch(newLabel ->
+                                    newLabel.getId().equals(existingLabel.getId())));
                     for (Label label : post.getLabels()) {
                         Label existingLabel = session.get(Label.class, label.getId());
-                        if (!existingPost.getLabels().contains(label)) {
-                            if (!Hibernate.isInitialized(existingLabel.getPosts())) {
-                                Hibernate.initialize(existingLabel.getPosts());
-                            }
-                            existingPost.addLabel(existingLabel);
-                        }
+                        existingPost.getLabels().add(existingLabel);
                     }
+                    existingPost.setContent(post.getContent());
                     existingPost.setUpdated(LocalDateTime.now());
+                    existingPost.setStatus(post.getStatus());
                     session.merge(existingPost);
 
                     transaction.commit();

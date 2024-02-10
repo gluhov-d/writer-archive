@@ -33,7 +33,7 @@ public class Post extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "status")
     private PostStatus status;
-    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(
             name = "post_label",
             joinColumns = { @JoinColumn(name = "post_id") },
@@ -41,35 +41,10 @@ public class Post extends BaseEntity {
     )
     private Set<Label> labels = new HashSet<>();
 
-    @ManyToMany(mappedBy = "posts", cascade = {CascadeType.MERGE, CascadeType.PERSIST})
-    @ToString.Exclude
-    @EqualsAndHashCode.Exclude
-    private Set<Writer> writers = new HashSet<>();
-
     public Post(Long id, String content, PostStatus status) {
         super(id);
         this.content = content;
         this.status = status;
-    }
-
-    public void addWriter(Writer w) {
-        this.getWriters().add(w);
-        w.getPosts().add(this);
-    }
-
-    public void removeWriter(Writer w) {
-        this.getWriters().remove(w);
-        w.getPosts().remove(this);
-    }
-
-    public void addLabel(Label l) {
-        this.labels.add(l);
-        l.getPosts().add(this);
-    }
-
-    public void removeLabel(Label l) {
-        this.labels.remove(l);
-        l.getPosts().remove(this);
     }
 
     @Override
